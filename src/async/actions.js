@@ -1,6 +1,5 @@
 export const DEFAULT_SUBREDDIT = 'javascript';
 
-
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 function requestPosts(subreddit) {
   return {
@@ -35,15 +34,6 @@ export function invalidateSubreddit(subreddit) {
   }
 }
 
-export function fetchPosts(subreddit) {
-  return dispatch => {
-    dispatch(requestPosts(subreddit));
-    return fetch(`http://www.reddit.com/r/${subreddit}.json`)
-      .then(response => response.json())
-      .then(json => dispatch(receivePosts(subreddit, json)))
-  }
-}
-
 export function shouldFetchPosts(state, subreddit) {
   const posts = state.postsBySubreddit[subreddit];
   if (!posts) {
@@ -55,20 +45,25 @@ export function shouldFetchPosts(state, subreddit) {
   }
 }
 
+/*
+ *   *************
+ *   async actions
+ *   *************
+*/
+export function fetchPosts(subreddit) {
+  return dispatch => {
+    dispatch(requestPosts(subreddit));
+    return fetch(`http://www.reddit.com/r/${subreddit}.json`)
+      .then(response => response.json())
+      .then(json => dispatch(receivePosts(subreddit, json)))
+  }
+}
+
 export function fetchPostsIfNeeded(subreddit) {
-
-  // Помните, что функция также получает getState(),
-  // который позволяет вам выбрать, что отправить дальше.
-
-  // Это полезно для того, чтобы избежать сетевого запроса,
-  // если доступно закешированное значение.
-
   return (dispatch, getState) => {
     if (shouldFetchPosts(getState(), subreddit)) {
-      // Обратимся у thunk из thunk!
       return dispatch(fetchPosts(subreddit))
     } else {
-      // Дадим вызвавшему коду знать, что ждать нечего.
       return Promise.resolve()
     }
   }
